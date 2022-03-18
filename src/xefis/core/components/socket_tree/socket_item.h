@@ -23,7 +23,7 @@
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/core/module.h>
-#include <xefis/core/socket.h>
+#include <xefis/core/sockets/socket.h>
 
 
 namespace xf {
@@ -43,6 +43,14 @@ class SocketItem: public QTreeWidgetItem
 
 	void
 	read();
+
+	bool
+	is_dir() const
+		{ return childCount() > 0; }
+
+	// API of QTreeWidgetItem
+	bool
+	operator< (QTreeWidgetItem const&) const override;
 
   private:
 	BasicSocket* _socket;

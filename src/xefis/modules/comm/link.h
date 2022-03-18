@@ -39,9 +39,9 @@
 #include <xefis/config/all.h>
 #include <xefis/core/module.h>
 #include <xefis/core/module_io.h>
-#include <xefis/core/module_socket.h>
 #include <xefis/core/setting.h>
-#include <xefis/utility/actions.h>
+#include <xefis/core/sockets/module_socket.h>
+#include <xefis/support/sockets/socket_changed.h>
 #include <xefis/utility/types.h>
 
 
@@ -177,10 +177,8 @@ class LinkProtocol
 
 			static constexpr uint8_t kBytes { pBytes };
 
-			static_assert ((std::is_integral<Value>() &&
-							(kBytes == 1 || kBytes == 2 || kBytes == 4 || kBytes == 8)) ||
-						   ((std::is_floating_point<Value>() || si::is_quantity<Value>()) &&
-							(kBytes == 2 || kBytes == 4 || kBytes == 8)));
+			static_assert ((std::integral<Value> && (kBytes == 1 || kBytes == 2 || kBytes == 4 || kBytes == 8)) ||
+						   (si::FloatingPointOrQuantity<Value> && (kBytes == 2 || kBytes == 4 || kBytes == 8)));
 
 		  private:
 			/**
@@ -210,7 +208,7 @@ class LinkProtocol
 			 *			If used, set to value where most precision is needed. Useful for 2-byte floats.
 			 */
 			template<class U = Value>
-				requires (std::is_floating_point_v<U> || si::is_quantity_v<U>)
+				requires si::FloatingPointOrQuantity<U>
 				explicit
 				Socket (xf::Socket<Value>&, xf::AssignableSocket<Value>*, Retained, std::optional<Value> offset = {});
 
@@ -426,35 +424,35 @@ class LinkProtocol
 	 * Protocol building functions.
 	 */
 
-	template<size_t Bytes, class Value, class = std::enable_if_t<std::is_integral_v<Value>>>
+	template<size_t Bytes, std::integral Value>
 		static auto
 		socket (xf::Socket<Value>& socket, Retained retained, Value fallback_value)
 		{
 			return std::make_shared<Socket<Bytes, Value>> (socket, retained, fallback_value);
 		}
 
-	template<size_t Bytes, class Value, class = std::enable_if_t<std::is_integral_v<Value>>>
+	template<size_t Bytes, std::integral Value>
 		static auto
 		socket (xf::AssignableSocket<Value>& assignable_socket, Retained retained, Value fallback_value)
 		{
 			return std::make_shared<Socket<Bytes, Value>> (assignable_socket, retained, fallback_value);
 		}
 
-	template<size_t Bytes, class Value, class = std::enable_if_t<std::is_floating_point_v<Value> || si::is_quantity_v<Value>>>
+	template<size_t Bytes, si::FloatingPointOrQuantity Value>
 		static auto
 		socket (xf::Socket<Value>& socket, Retained retained)
 		{
 			return std::make_shared<Socket<Bytes, Value>> (socket, retained);
 		}
 
-	template<size_t Bytes, class Value, class = std::enable_if_t<std::is_floating_point_v<Value> || si::is_quantity_v<Value>>>
+	template<size_t Bytes, si::FloatingPointOrQuantity Value>
 		static auto
 		socket (xf::AssignableSocket<Value>& assignable_socket, Retained retained)
 		{
 			return std::make_shared<Socket<Bytes, Value>> (assignable_socket, retained);
 		}
 
-	template<size_t Bytes, class Value, class Offset, class = std::enable_if_t<std::is_floating_point_v<Value> || si::is_quantity_v<Value>>>
+	template<size_t Bytes, si::FloatingPointOrQuantity Value, class Offset>
 		static auto
 		socket (xf::Socket<Value>& socket, Retained retained, Offset offset)
 		{
@@ -462,7 +460,7 @@ class LinkProtocol
 			return std::make_shared<Socket<Bytes, Value>> (socket, retained, std::optional<Value> (offset));
 		}
 
-	template<size_t Bytes, class Value, class Offset, class = std::enable_if_t<std::is_floating_point_v<Value> || si::is_quantity_v<Value>>>
+	template<size_t Bytes, si::FloatingPointOrQuantity Value, class Offset>
 		static auto
 		socket (xf::AssignableSocket<Value>& assignable_socket, Retained retained, Offset offset)
 		{
@@ -633,7 +631,7 @@ class Link:
 	Blob							_input_blob;
 	Blob							_output_blob;
 	std::unique_ptr<LinkProtocol>	_protocol;
-	xf::PropChanged<std::string>	_input_changed		{ io.link_input };
+	xf::SocketChanged				_input_changed		{ io.link_input };
 };
 
 
@@ -666,7 +664,7 @@ template<uint8_t B, class V>
 
 template<uint8_t B, class V>
 	template<class U>
-		requires (std::is_floating_point_v<U> || si::is_quantity_v<U>)
+		requires si::FloatingPointOrQuantity<U>
 		inline
 		LinkProtocol::Socket<B, V>::Socket (xf::Socket<Value>& socket, xf::AssignableSocket<Value>* assignable_socket, Retained retained, std::optional<Value> offset):
 			_socket (socket),
@@ -731,7 +729,7 @@ template<uint8_t B, class V>
 				else if (!_retained)
 					*_assignable_socket = xf::nil;
 			}
-			else if constexpr (std::is_floating_point<Value>() || si::is_quantity<Value>())
+			else if constexpr (si::FloatingPointOrQuantity<Value>)
 			{
 				if (_value)
 				{
@@ -762,7 +760,7 @@ template<uint8_t B, class V>
 		{
 			auto const size = sizeof (CastType);
 			CastType casted (src);
-			neutrino::native_to_little (casted);
+			neutrino::perhaps_native_to_little_inplace (casted);
 			uint8_t* ptr = reinterpret_cast<uint8_t*> (&casted);
 			blob.resize (blob.size() + size);
 			std::copy (ptr, ptr + size, &blob[blob.size() - size]);
@@ -781,7 +779,7 @@ template<uint8_t B, class V>
 			auto const work_end = begin + neutrino::to_signed (size);
 			CastType casted;
 			std::copy (begin, work_end, reinterpret_cast<uint8_t*> (&casted));
-			neutrino::little_to_native (casted);
+			neutrino::perhaps_little_to_native_inplace (casted);
 			src = casted;
 			return work_end;
 		}

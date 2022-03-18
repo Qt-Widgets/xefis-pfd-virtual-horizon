@@ -24,10 +24,10 @@
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/core/module.h>
-#include <xefis/core/module_socket.h>
 #include <xefis/core/setting.h>
-#include <xefis/core/socket_observer.h>
+#include <xefis/core/sockets/module_socket.h>
 #include <xefis/support/airframe/airframe.h>
+#include <xefis/support/sockets/socket_observer.h>
 #include <xefis/utility/lookahead.h>
 #include <xefis/utility/smoother.h>
 

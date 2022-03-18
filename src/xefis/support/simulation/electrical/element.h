@@ -45,6 +45,10 @@ class Element: public Noncopyable
 	Element (Type type, std::string_view const& name);
 
   public:
+	// Dtor
+	virtual
+	~Element() = default;
+
 	/**
 	 * Return element type.
 	 */
@@ -218,6 +222,10 @@ class Element: public Noncopyable
 	Node			_cathode		{ *this, Node::Cathode };
 	bool			_broken			{ false };
 };
+
+
+template<class T>
+	concept ElementConcept = std::derived_from<T, Element>;
 
 
 inline

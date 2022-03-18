@@ -21,7 +21,7 @@
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/support/simulation/constraints/hinge_precalculation.h>
-#include <xefis/support/simulation/devices/servo.h>
+#include <xefis/support/simulation/devices/interfaces/servo.h>
 #include <xefis/support/simulation/rigid_body/body.h>
 #include <xefis/support/simulation/rigid_body/constraint.h>
 
@@ -50,7 +50,7 @@ class AngularServo: public rigid_body::Body
 
 
 std::unique_ptr<AngularServo>
-make_standard_9gram_servo (PositionRotation<rigid_body::WorldSpace, rigid_body::BodySpace> const& location);
+make_standard_9gram_servo (Placement<rigid_body::WorldSpace, rigid_body::BodySpace> const& location);
 
 } // namespace xf::sim
 

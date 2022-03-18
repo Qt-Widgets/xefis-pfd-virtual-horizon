@@ -38,11 +38,11 @@ struct Air
 /**
  * StandardAtmosphere state at some given position.
  */
-template<class Frame>
+template<class Space>
 	struct AtmosphereState
 	{
 		Air									air;
-		SpaceVector<si::Velocity, Frame>	wind;
+		SpaceVector<si::Velocity, Space>	wind;
 	};
 
 
@@ -52,6 +52,10 @@ template<class Frame>
 class AtmosphereModel
 {
   public:
+	// Dtor
+	virtual
+	~AtmosphereModel() = default;
+
 	[[nodiscard]]
 	virtual Air
 	air_at (SpaceVector<si::Length, ECEFSpace> const& position) const = 0;

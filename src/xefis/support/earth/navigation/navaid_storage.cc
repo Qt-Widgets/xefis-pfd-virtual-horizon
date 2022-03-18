@@ -71,13 +71,18 @@ inline
 GzDataFileIterator::GzDataFileIterator (std::string_view const& path):
 	_file (QString::fromStdString (std::string (path)))
 {
-	_file.open (QFile::ReadOnly); // TODO check if result is true
-	_decompressor = std::make_unique<QZDevice> (&_file);
-	_decompressor->open (QZDevice::ReadOnly); // TODO check if result is true
-	_decompressed_stream = std::make_unique<QTextStream> (_decompressor.get());
-	// Skip two first lines (file origin and copyrights):
-	operator++();
-	operator++();
+	if (_file.open (QFile::ReadOnly))
+	{
+		_decompressor = std::make_unique<QZDevice> (&_file);
+
+		if (_decompressor->open (QZDevice::ReadOnly))
+		{
+			_decompressed_stream = std::make_unique<QTextStream> (_decompressor.get());
+			// Skip two first lines (file origin and copyrights):
+			operator++();
+			operator++();
+		}
+	}
 }
 
 
@@ -121,6 +126,8 @@ NavaidStorage::NavaidStorage (Logger const& logger,
 
 NavaidStorage::~NavaidStorage()
 {
+	_destroying = true;
+
 	if (_async_requested && !_loaded)
 	{
 		_logger << "Requested async load; waiting for completion." << std::endl;
@@ -145,7 +152,13 @@ NavaidStorage::load()
 	parse_fix_dat();
 	parse_apt_dat();
 
+	if (destroying())
+		return;
+
 	_navaids_tree.optimize();
+
+	if (destroying())
+		return;
 
 	for (Navaid const& navaid: _navaids_tree)
 	{
@@ -336,6 +349,9 @@ NavaidStorage::parse_nav_dat()
 			default:
 				break;
 		}
+
+		if (destroying())
+			return;
 	}
 
 	_logger << "Loading navaids: done" << std::endl;
@@ -364,6 +380,9 @@ NavaidStorage::parse_fix_dat()
 		pos = si::LonLat (1_deg * pos_lon, 1_deg * pos_lat);
 
 		_navaids_tree.insert (Navaid (Navaid::FIX, pos, identifier, identifier, 0_nmi));
+
+		if (destroying())
+			return;
 	}
 
 	_logger << "Loading fixes: done" << std::endl;
@@ -478,11 +497,30 @@ NavaidStorage::parse_apt_dat()
 				}
 			}
 		}
+
+		if (destroying())
+			return;
 	}
 
 	push_navaid();
 
 	_logger << "Loading airports: done" << std::endl;
+}
+
+
+bool
+NavaidStorage::destroying()
+{
+	if (_destroying)
+	{
+		if (!_logged_destroying)
+			_logger << "Loading navaids: interrupted" << std::endl;
+
+		_logged_destroying = true;
+		return true;
+	}
+	else
+		return false;
 }
 
 } // namespace xf

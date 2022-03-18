@@ -33,8 +33,8 @@
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/core/module.h>
-#include <xefis/core/module_socket.h>
 #include <xefis/core/setting.h>
+#include <xefis/core/sockets/module_socket.h>
 
 
 namespace si = neutrino::si;
@@ -82,6 +82,10 @@ class JoystickInput:
 	class Handler
 	{
 	  public:
+		// Dtor
+		virtual
+		~Handler() = default;
+
 		/**
 		 * Called when new joystick event comes.
 		 * \param	value
