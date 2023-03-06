@@ -11,14 +11,14 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
-// Standard:
-#include <cstddef>
+// Local:
+#include "test_screen_2.h"
 
 // Xefis:
 #include <xefis/config/all.h>
 
-// Local:
-#include "test_screen_2.h"
+// Standard:
+#include <cstddef>
 
 
 TestScreen2::TestScreen2 (xf::ScreenSpec const& spec, xf::Graphics const& graphics, xf::NavaidStorage const& navaid_storage, xf::Machine& machine, xf::Logger const& logger):
@@ -26,30 +26,25 @@ TestScreen2::TestScreen2 (xf::ScreenSpec const& spec, xf::Graphics const& graphi
 	_logger (logger),
 	_graphics (graphics),
 	_navaid_storage (navaid_storage),
-	_hsi_work_performer (2, _logger.with_scope ("big-HSI"))
+	_hsi_work_performer (2, _logger.with_scope ("big-HSI")),
+	// Instruments:
+	hsi_1 (_graphics, _navaid_storage, _logger, "big-hsi-1"),
+	hsi_2 (_graphics, _navaid_storage, _logger, "big-hsi-2")
 {
-	hsi_1_io->arpt_runways_range_threshold	= 2_nmi;
-	hsi_1_io->arpt_map_range_threshold		= 1_nmi;
-	hsi_1_io->arpt_runway_extension_length	= 10_nmi;
+	register_instrument (this->hsi_1, _hsi_work_performer);
+	register_instrument (this->hsi_2, _hsi_work_performer);
 
-	hsi_2_io->arpt_runways_range_threshold	= 20_nmi;
-	hsi_2_io->arpt_map_range_threshold		= 1_nmi;
-	hsi_2_io->arpt_runway_extension_length	= 10_nmi;
-}
+	this->hsi_1->arpt_runways_range_threshold	= 2_nmi;
+	this->hsi_1->arpt_map_range_threshold		= 1_nmi;
+	this->hsi_1->arpt_runway_extension_length	= 10_nmi;
 
+	this->hsi_2->arpt_runways_range_threshold	= 20_nmi;
+	this->hsi_2->arpt_map_range_threshold		= 1_nmi;
+	this->hsi_2->arpt_runway_extension_length	= 10_nmi;
 
-void
-TestScreen2::create_instruments()
-{
-	_hsi_1.emplace (std::move (hsi_1_io), _graphics, _navaid_storage, _logger, "big-hsi-1");
-	register_instrument (*_hsi_1, _hsi_work_performer);
-	set (**_hsi_1, { 0.0f, 0.0f, 0.5f, 1.0f });
-
-	_hsi_2.emplace (std::move (hsi_2_io), _graphics, _navaid_storage, _logger, "big-hsi-2");
-	register_instrument (*_hsi_2, _hsi_work_performer);
-	set (**_hsi_2, { 0.5f, 0.0f, 0.5f, 1.0f });
+	set (*this->hsi_1, { 0.0f, 0.0f, 0.5f, 1.0f });
+	set (*this->hsi_2, { 0.5f, 0.0f, 0.5f, 1.0f });
 
 	set_paint_bounding_boxes (false);
 }
-
 

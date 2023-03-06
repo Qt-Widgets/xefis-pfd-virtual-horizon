@@ -14,14 +14,8 @@
 #ifndef XEFIS__CORE__COMPONENTS__MODULE_CONFIGURATOR__MODULE_WIDGET_H__INCLUDED
 #define XEFIS__CORE__COMPONENTS__MODULE_CONFIGURATOR__MODULE_WIDGET_H__INCLUDED
 
-// Standard:
-#include <cstddef>
-
-// Qt:
-#include <QLabel>
-#include <QStackedWidget>
-#include <QTimer>
-#include <QWidget>
+// Local:
+#include "module_widget.h"
 
 // Xefis:
 #include <xefis/config/all.h>
@@ -33,8 +27,14 @@
 #include <xefis/support/ui/histogram_stats_widget.h>
 #include <xefis/support/ui/widget.h>
 
-// Local:
-#include "module_widget.h"
+// Qt:
+#include <QLabel>
+#include <QStackedWidget>
+#include <QTimer>
+#include <QWidget>
+
+// Standard:
+#include <cstddef>
 
 
 namespace xf::configurator {
@@ -49,12 +49,12 @@ class ModuleWidget: public ConfigWidget
   public:
 	// Ctor
 	explicit
-	ModuleWidget (BasicModule&, QWidget* parent);
+	ModuleWidget (Module&, QWidget* parent);
 
 	/**
 	 * Return module.
 	 */
-	BasicModule&
+	Module&
 	module() const noexcept;
 
   private:
@@ -65,8 +65,8 @@ class ModuleWidget: public ConfigWidget
 	create_performance_tab();
 
   private:
-	BasicModule&				_module;
-	BasicInstrument*			_instrument						{ nullptr };
+	Module&						_module;
+	Instrument*					_instrument						{ nullptr };
 	SocketTree*					_inputs_socket_tree;
 	SocketTree*					_outputs_socket_tree;
 	QWidget*					_communication_time_group		{ nullptr };
@@ -81,7 +81,7 @@ class ModuleWidget: public ConfigWidget
 };
 
 
-inline BasicModule&
+inline Module&
 ModuleWidget::module() const noexcept
 {
 	return _module;

@@ -11,20 +11,21 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
-// Standard:
-#include <cstddef>
-
-// Qt:
-#include <QBoxLayout>
-#include <QShortcut>
+// Local:
+#include "configurator_widget.h"
 
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/core/machine.h>
 #include <xefis/core/module.h>
+#include <xefis/support/ui/paint_helper.h>
 
-// Local:
-#include "configurator_widget.h"
+// Qt:
+#include <QBoxLayout>
+#include <QShortcut>
+
+// Standard:
+#include <cstddef>
 
 
 namespace xf {
@@ -33,6 +34,8 @@ ConfiguratorWidget::ConfiguratorWidget (Machine& machine, QWidget* parent):
 	Widget (parent),
 	_machine (machine)
 {
+	auto const ph = PaintHelper (*this, palette(), font());
+
 	_module_configurator = new ModuleConfigurator (_machine, this);
 	_data_recorder = new DataRecorder (this);
 
@@ -41,7 +44,7 @@ ConfiguratorWidget::ConfiguratorWidget (Machine& machine, QWidget* parent):
 	_tabs->addTab (_data_recorder, "&Data recorder");
 
 	auto* layout = new QVBoxLayout (this);
-	layout->setMargin (em_pixels (0.15f));
+	layout->setMargin (ph.em_pixels (0.15f));
 	layout->addWidget (_tabs);
 
 	auto* esc = new QShortcut (this);

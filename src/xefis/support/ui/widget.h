@@ -1,6 +1,6 @@
 /* vim:ts=4
  *
- * Copyleft 2012…2016  Michał Gawron
+ * Copyleft 2022  Michał Gawron
  * Marduk Unix Labs, http://mulabs.org/
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,18 +14,18 @@
 #ifndef XEFIS__SUPPORT__UI__WIDGET_H__INCLUDED
 #define XEFIS__SUPPORT__UI__WIDGET_H__INCLUDED
 
-// Standard:
-#include <cstddef>
-#include <memory>
-
-// Qt:
-#include <QWidget>
+// Xefis:
+#include <xefis/config/all.h>
 
 // Neutrino:
 #include <neutrino/qt/qutils.h>
 
-// Xefis:
-#include <xefis/config/all.h>
+// Qt:
+#include <QWidget>
+
+// Standard:
+#include <cstddef>
+#include <memory>
 
 
 namespace xf {
@@ -36,24 +36,6 @@ class Widget: public QWidget
 	// Ctor
 	explicit
 	Widget (QWidget* parent = nullptr, Qt::WindowFlags = Qt::Widget);
-
-	/**
-	 * Return current PixelDensity.
-	 */
-	si::PixelDensity
-	pixel_density() const;
-
-	/**
-	 * Return number of pixels that correspond to the given real length on the screen.
-	 */
-	float
-	pixels (si::Length) const;
-
-	/**
-	 * Return number of pixels that correspond to the given line-heights of text.
-	 */
-	float
-	em_pixels (float ems = 1.0f) const;
 
   public:
 	/**
@@ -70,32 +52,6 @@ class Widget: public QWidget
 	QWidget*
 	create_colored_strip_label (QString const& label, QColor color, Qt::Alignment strip_position, QWidget* parent) const;
 };
-
-
-inline si::PixelDensity
-Widget::pixel_density() const
-{
-	return si::PixelDensity (this->logicalDpiY());
-}
-
-
-inline float
-Widget::pixels (si::Length width) const
-{
-	return xf::pixels (width, pixel_density());
-}
-
-
-inline float
-Widget::em_pixels (float ems) const
-{
-	int v = font().pixelSize();
-
-	if (v != -1)
-		return ems * v;
-	else
-		return ems * font().pointSize() * xf::pixels_per_point (pixel_density());
-}
 
 } // namespace xf
 

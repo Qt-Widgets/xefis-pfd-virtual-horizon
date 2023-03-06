@@ -11,17 +11,11 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
-// Standard:
-#include <cstddef>
+// Local:
+#include "pca9685.h"
 
-// System:
-#include <unistd.h>
-
-// Lib:
-#include <boost/endian/conversion.hpp>
-
-// Qt:
-#include <QTimer>
+// Xefis:
+#include <xefis/config/all.h>
 
 // Neutrino:
 #include <neutrino/numeric.h>
@@ -29,11 +23,17 @@
 #include <neutrino/time_helper.h>
 #include <neutrino/stdexcept.h>
 
-// Xefis:
-#include <xefis/config/all.h>
+// Qt:
+#include <QTimer>
 
-// Local:
-#include "pca9685.h"
+// Lib:
+#include <boost/endian/conversion.hpp>
+
+// System:
+#include <unistd.h>
+
+// Standard:
+#include <cstddef>
 
 
 namespace xf {
@@ -77,7 +77,7 @@ PCA9685::initialize()
 
 		// Set pre-scale value and thus set period time.
 		// Need to go to sleep to change prescale value.
-		uint8_t mode1_orig = _i2c_device.read_register (Register_Mode1) & ~Mode1_RestartEnabled;
+		uint8_t mode1_orig = _i2c_device.read_register (Register_Mode1) & static_cast<uint8_t> (~Mode1_RestartEnabled);
 		_i2c_device.write_register (Register_Mode1, mode1_orig | Mode1_Sleep);
 		_i2c_device.write_register (Register_Prescale, calculate_prescale_register (1.0 / _output_period));
 		_i2c_device.write_register (Register_Mode1, mode1_orig & ~Mode1_Sleep);

@@ -14,25 +14,24 @@
 #ifndef XEFIS__MODULES__COMM__UDP_H__INCLUDED
 #define XEFIS__MODULES__COMM__UDP_H__INCLUDED
 
-// Standard:
-#include <cstddef>
-
-// Qt:
-#include <QtNetwork/QUdpSocket>
-
-// Neutrino:
-#include <neutrino/logger.h>
-
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/core/module.h>
-#include <xefis/core/module_io.h>
 #include <xefis/core/setting.h>
 #include <xefis/core/sockets/module_socket.h>
 #include <xefis/support/sockets/socket_changed.h>
 
+// Neutrino:
+#include <neutrino/logger.h>
 
-class UDP_IO: public xf::ModuleIO
+// Qt:
+#include <QtNetwork/QUdpSocket>
+
+// Standard:
+#include <cstddef>
+
+
+class UDP_IO: public xf::Module
 {
   public:
 	/*
@@ -57,12 +56,15 @@ class UDP_IO: public xf::ModuleIO
 	 */
 
 	xf::ModuleOut<std::string>	receive				{ this, "receive" };
+
+  public:
+	using xf::Module::Module;
 };
 
 
 class UDP:
 	public QObject,
-	public xf::Module<UDP_IO>
+	public UDP_IO
 {
 	Q_OBJECT
 
@@ -72,7 +74,7 @@ class UDP:
   public:
 	// Ctor
 	explicit
-	UDP (std::unique_ptr<UDP_IO> module_io, xf::Logger const&, std::string_view const& instance = {});
+	UDP (xf::Logger const&, std::string_view const& instance = {});
 
 	// Module API
 	void
@@ -93,11 +95,12 @@ class UDP:
 	interfere (QByteArray& blob);
 
   private:
+	UDP_IO&							_io				{ *this };
 	xf::Logger						_logger;
 	QByteArray						_received_datagram;
 	std::unique_ptr<QUdpSocket>		_tx;
 	std::unique_ptr<QUdpSocket>		_rx;
-	xf::SocketChanged				_send_changed	{ io.send };
+	xf::SocketChanged				_send_changed	{ _io.send };
 };
 
 #endif

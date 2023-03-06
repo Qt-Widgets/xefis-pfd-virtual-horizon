@@ -11,16 +11,6 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
-// Standard:
-#include <cstddef>
-#include <memory>
-#include <string>
-
-// Neutrino:
-#include <neutrino/qt/qutils.h>
-#include <neutrino/test/dummy_qapplication.h>
-#include <neutrino/test/manual_test.h>
-
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/support/geometry/triangulation.h>
@@ -39,6 +29,16 @@
 #include <xefis/support/simulation/rigid_body/various_shapes.h>
 #include <xefis/support/simulation/simulation.h>
 #include <xefis/support/ui/rigid_body_viewer.h>
+
+// Neutrino:
+#include <neutrino/qt/qutils.h>
+#include <neutrino/test/dummy_qapplication.h>
+#include <neutrino/test/manual_test.h>
+
+// Standard:
+#include <cstddef>
+#include <memory>
+#include <string>
 
 
 namespace xf::test {
@@ -84,7 +84,7 @@ void
 run (rigid_body::System& system, rigid_body::Body* followed_body, std::function<void (si::Time dt)> apply_forces = nullptr)
 {
 	auto solver = rigid_body::ImpulseSolver (system, 1);
-	solver.set_baumgarte_factor (0.5);
+	system.set_baumgarte_factor (0.5);
 
 	neutrino::DummyQApplication app;
 
@@ -98,9 +98,11 @@ run (rigid_body::System& system, rigid_body::Body* followed_body, std::function<
 	QWidget w (nullptr);
 	auto const lh = neutrino::default_line_height (&w);
 
-	RigidBodyViewer viewer (system, QSize (50 * lh, 50 * lh), 60_Hz, [&] (si::Time const dt) {
+	RigidBodyViewer viewer (nullptr, 60_Hz);
+	viewer.set_rigid_body_system (&system, [&] (si::Time const dt) {
 		simulation.evolve (dt, 1_s);
 	});
+	viewer.resize (QSize (50 * lh, 50 * lh));
 	viewer.set_followed (followed_body);
 	viewer.show();
 

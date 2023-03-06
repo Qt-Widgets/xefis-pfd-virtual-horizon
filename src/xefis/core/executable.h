@@ -1,6 +1,6 @@
 /* vim:ts=4
  *
- * Copyleft 2012…2016  Michał Gawron
+ * Copyleft 2012…2022  Michał Gawron
  * Marduk Unix Labs, http://mulabs.org/
  *
  * This program is free software: you can redistribute it and/or modify
@@ -11,36 +11,42 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
-// Standard:
-#include <atomic>
-#include <cstddef>
-#include <cstdlib>
-#include <iostream>
-#include <memory>
+#ifndef XEFIS__CORE__APPLICATION_H__INCLUDED
+#define XEFIS__CORE__APPLICATION_H__INCLUDED
+
+// Xefis:
+#include <xefis/config/all.h>
+
+// Neutrino:
+#include <neutrino/backtrace.h>
+#include <neutrino/fail.h>
+
+// Qt:
+#include <QtCore/QTextCodec>
 
 // System:
 #include <signal.h>
 #include <locale.h>
 #include <string.h>
 
-// Qt:
-#include <QtCore/QTextCodec>
-
-// Neutrino:
-#include <neutrino/backtrace.h>
-#include <neutrino/fail.h>
-
-// Xefis:
-#include <xefis/config/all.h>
-#include <xefis/core/xefis.h>
+// Standard:
+#include <cstddef>
+#include <functional>
+#include <iostream>
 
 
-int main (int argc, char** argv, char**)
+namespace xf {
+
+class QuitInstruction { };
+
+
+inline int
+setup_xefis_executable (int argc, char** argv, std::function<void()> run_app_function)
 {
-	signal (SIGILL, xf::fail);
-	signal (SIGFPE, xf::fail);
-	signal (SIGSEGV, xf::fail);
-	signal (SIGHUP, [](int) { xf::g_hup_received.store (true); });
+	signal (SIGILL, neutrino::fail);
+	signal (SIGFPE, neutrino::fail);
+	signal (SIGSEGV, neutrino::fail);
+	signal (SIGHUP, [](int) { neutrino::g_hup_received.store (true); });
 
 	setenv ("LC_ALL", "POSIX", 1);
 	setlocale (LC_ALL, "POSIX");
@@ -55,12 +61,9 @@ int main (int argc, char** argv, char**)
 			std::clog << std::endl;
 		}
 		else
-		{
-			auto app = std::make_unique<xf::Xefis> (argc, argv);
-			app->exec();
-		}
+			run_app_function();
 	}
-	catch (xf::Xefis::QuitInstruction)
+	catch (QuitInstruction)
 	{
 		return EXIT_SUCCESS;
 	}
@@ -69,8 +72,13 @@ int main (int argc, char** argv, char**)
 		using namespace xf::exception_ops;
 
 		std::cerr << "Fatal error: " << e << std::endl;
+		return EXIT_FAILURE;
 	}
 
 	return EXIT_SUCCESS;
 }
+
+} // namespace xf
+
+#endif
 

@@ -14,11 +14,15 @@
 #ifndef XEFIS__MODULES__IO__JOYSTICK_H__INCLUDED
 #define XEFIS__MODULES__IO__JOYSTICK_H__INCLUDED
 
-// Standard:
-#include <cstddef>
-#include <vector>
-#include <array>
-#include <set>
+// Xefis:
+#include <xefis/config/all.h>
+#include <xefis/core/module.h>
+#include <xefis/core/setting.h>
+#include <xefis/core/sockets/module_socket.h>
+
+// Neutrino:
+#include <neutrino/logger.h>
+#include <neutrino/range.h>
 
 // Qt:
 #include <QObject>
@@ -26,22 +30,18 @@
 #include <QTimer>
 #include <QDomElement>
 
-// Neutrino:
-#include <neutrino/logger.h>
-#include <neutrino/range.h>
-
-// Xefis:
-#include <xefis/config/all.h>
-#include <xefis/core/module.h>
-#include <xefis/core/setting.h>
-#include <xefis/core/sockets/module_socket.h>
+// Standard:
+#include <cstddef>
+#include <vector>
+#include <array>
+#include <set>
 
 
 namespace si = neutrino::si;
 using namespace neutrino::si::literals;
 
 
-class JoystickInputIO: public xf::ModuleIO
+class JoystickInputIO: public xf::Module
 {
   public:
 	/*
@@ -51,12 +51,15 @@ class JoystickInputIO: public xf::ModuleIO
 	xf::Setting<bool>	restart_on_failure	{ this, "restart_on_failure", true };
 
 	// TODO ModuleOuts for axes and buttons
+
+  public:
+	using xf::Module::Module;
 };
 
 
 class JoystickInput:
 	public QObject,
-	public xf::Module<JoystickInputIO>
+	public JoystickInputIO
 {
 	Q_OBJECT
 
@@ -174,7 +177,7 @@ class JoystickInput:
   public:
 	// Ctor
 	explicit
-	JoystickInput (std::unique_ptr<JoystickInputIO>, QDomElement const& config, xf::Logger const&, std::string_view const& instance = {});
+	JoystickInput (QDomElement const& config, xf::Logger const&, std::string_view const& instance = {});
 
 	// Module API
 	void
@@ -233,9 +236,10 @@ class JoystickInput:
 	reset_sockets();
 
   private:
+	JoystickInputIO&					_io					{ *this };
 	xf::Logger							_logger;
 	std::optional<std::string>			_device_path;
-	int									_device				= 0;
+	int									_device				{ 0 };
 	std::unique_ptr<QSocketNotifier>	_notifier;
 	std::unique_ptr<QTimer>				_reopen_timer;
 	std::set<HandlerID>					_available_buttons;
@@ -245,7 +249,7 @@ class JoystickInput:
 	AxisSockets							_axis_sockets;
 	AngleAxisSockets					_angle_axis_sockets;
 	AngleAxisRanges						_angle_axis_ranges;
-	unsigned int						_failure_count		= 0;
+	unsigned int						_failure_count		{ 0 };
 };
 
 

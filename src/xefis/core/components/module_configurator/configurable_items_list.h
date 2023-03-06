@@ -14,20 +14,20 @@
 #ifndef XEFIS__CORE__COMPONENTS__MODULE_CONFIGURATOR__CONFIGURABLE_ITEMS_LIST_H__INCLUDED
 #define XEFIS__CORE__COMPONENTS__MODULE_CONFIGURATOR__CONFIGURABLE_ITEMS_LIST_H__INCLUDED
 
-// Standard:
-#include <cstddef>
-
-// Qt:
-#include <QtCore/QTimer>
-#include <QtWidgets/QWidget>
-#include <QtWidgets/QTreeWidget>
-
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/core/machine.h>
 #include <xefis/core/module.h>
 #include <xefis/core/processing_loop.h>
 #include <xefis/core/screen.h>
+
+// Qt:
+#include <QtCore/QTimer>
+#include <QtWidgets/QWidget>
+#include <QtWidgets/QTreeWidget>
+
+// Standard:
+#include <cstddef>
 
 
 // TODO Fix this to xf::configurator when Qt MOC parsing bugs get fixed
@@ -63,7 +63,7 @@ class ConfigurableItemsList: public QWidget
 	 * Emitted when user selects a Module (also Instrument) item.
 	 */
 	void
-	module_selected (BasicModule&);
+	module_selected (Module&);
 
 	/**
 	 * Emitted when user selects a Screen item.
@@ -101,7 +101,7 @@ class ConfigurableItemsList: public QWidget
 	QTimer*							_refresh_timer	= nullptr;
 	std::vector<ProcessingLoop*>	_tmp_processing_loop_ptrs;
 	std::vector<Screen*>			_tmp_screen_ptrs;
-	std::vector<BasicModule*>		_tmp_module_ptrs;
+	std::vector<Module*>			_tmp_module_ptrs;
 };
 
 } // namespce configurator

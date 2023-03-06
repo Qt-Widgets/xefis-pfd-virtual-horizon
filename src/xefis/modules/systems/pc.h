@@ -14,25 +14,26 @@
 #ifndef XEFIS__MODULES__SYSTEMS__PC_H__INCLUDED
 #define XEFIS__MODULES__SYSTEMS__PC_H__INCLUDED
 
-// Standard:
-#include <cstddef>
-#include <array>
-
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/core/module.h>
 #include <xefis/core/setting.h>
 #include <xefis/core/sockets/module_socket.h>
+#include <xefis/support/airframe/airframe.h>
 #include <xefis/support/sockets/socket_observer.h>
 #include <xefis/utility/smoother.h>
 #include <xefis/utility/range_smoother.h>
+
+// Standard:
+#include <cstddef>
+#include <array>
 
 
 namespace si = neutrino::si;
 using namespace neutrino::si::literals;
 
 
-class PerformanceComputerIO: public xf::ModuleIO
+class PerformanceComputerIO: public xf::Module
 {
   public:
 	/*
@@ -112,15 +113,18 @@ class PerformanceComputerIO: public xf::ModuleIO
 	xf::ModuleOut<si::Angle>		estimated_aoa				{ this, "estimated.aoa" };
 	xf::ModuleOut<si::Angle>		estimated_aoa_error			{ this, "estimated.aoa-error" };
 	xf::ModuleOut<si::Angle>		slip_skid					{ this, "slip-skid" };
+
+  public:
+	using xf::Module::Module;
 };
 
 
-class PerformanceComputer: public xf::Module<PerformanceComputerIO>
+class PerformanceComputer: public PerformanceComputerIO
 {
   public:
 	// Ctor
 	explicit
-	PerformanceComputer (std::unique_ptr<PerformanceComputerIO>, xf::Airframe*, std::string_view const& instance = {});
+	PerformanceComputer (xf::Airframe*, std::string_view const& instance = {});
 
   protected:
 	void
@@ -173,8 +177,9 @@ class PerformanceComputer: public xf::Module<PerformanceComputerIO>
 	aoa_to_tas_now (si::Angle aoa, std::optional<si::Acceleration> load = {}) const;
 
   private:
+	PerformanceComputerIO&			_io									{ *this };
 	xf::Airframe*					_airframe;
-	si::Energy						_prev_total_energy					= 0_J;
+	si::Energy						_prev_total_energy					{ 0_J };
 	// Note: SocketObservers depend on Smoothers, so first Smoothers must be defined,
 	// then SocketObservers, to ensure correct order of destruction.
 	xf::RangeSmoother<si::Angle>	_wind_direction_smoother			{ { 0.0_deg, 360.0_deg }, 5_s };

@@ -14,9 +14,6 @@
 #ifndef XEFIS__SUPPORT__MATH__TAIT_BRYAN_ANGLES_H__INCLUDED
 #define XEFIS__SUPPORT__MATH__TAIT_BRYAN_ANGLES_H__INCLUDED
 
-// Standard:
-#include <cstddef>
-
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/support/math/euler_angles.h>
@@ -24,8 +21,19 @@
 #include <xefis/support/math/placement.h>
 #include <xefis/support/math/transforms.h>
 
+// Standard:
+#include <cstddef>
+
 
 namespace xf {
+
+struct TaitBryanAnglesParams
+{
+	si::Angle	pitch;
+	si::Angle	roll;
+	si::Angle	yaw;
+};
+
 
 /**
  * Pitch, roll, yaw angles from the NED frame.
@@ -34,6 +42,11 @@ struct TaitBryanAngles: public SpaceVector<si::Angle>
 {
 	using SpaceVector<si::Angle>::SpaceVector;
 	using SpaceVector<si::Angle>::operator=;
+
+	// Ctor
+	TaitBryanAngles (TaitBryanAnglesParams const& params):
+		SpaceVector<si::Angle> (params.pitch, params.roll, params.yaw)
+	{ }
 
 	// Ctor
 	explicit

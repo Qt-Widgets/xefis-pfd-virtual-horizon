@@ -11,33 +11,37 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
+// Local:
+#include "rigid_body_viewer.h"
+
+// Xefis:
+#include <xefis/config/all.h>
+#include <xefis/core/machine.h>
+
+// Qt:
+#include <QCoreApplication>
+#include <QMenu>
+#include <QScreen>
+#include <QShortcut>
+
 // Standard:
 #include <cstddef>
 #include <functional>
 
-// Qt:
-#include <QMenu>
-#include <QScreen>
-
-// Xefis:
-#include <xefis/config/all.h>
-
-// Local:
-#include "rigid_body_viewer.h"
-
 
 namespace xf {
 
-RigidBodyViewer::RigidBodyViewer (rigid_body::System& system,
-								  QSize const window_size,
-								  RefreshRate const refresh_rate,
-								  Evolve const evolve):
-	GLAnimationWindow (window_size, refresh_rate, std::bind (&RigidBodyViewer::draw, this, std::placeholders::_1)),
-	_rigid_body_system (system),
-	_rigid_body_painter (si::PixelDensity (screen()->physicalDotsPerInch())),
-	_evolve (evolve)
+RigidBodyViewer::RigidBodyViewer (QWidget* parent, RefreshRate const refresh_rate):
+	GLAnimationWidget (parent, refresh_rate, std::bind (&RigidBodyViewer::draw, this, std::placeholders::_1)),
+	_rigid_body_painter (si::PixelDensity (screen()->physicalDotsPerInch()))
 {
-	setTitle ("Xefis rigid body viewer");
+	setWindowTitle("Xefis rigid body viewer");
+
+	{
+		auto* esc = new QShortcut (this);
+		esc->setKey (Qt::Key_Escape);
+		QObject::connect (esc, &QShortcut::activated, this, &RigidBodyViewer::show_configurator);
+	}
 }
 
 
@@ -191,9 +195,12 @@ RigidBodyViewer::draw (QOpenGLPaintDevice& canvas)
 		}
 	}
 
-	_rigid_body_painter.set_camera_position (position());
-	_rigid_body_painter.set_camera_angles (x_angle(), -y_angle(), 0_deg);
-	_rigid_body_painter.paint (_rigid_body_system, canvas);
+	if (_rigid_body_system)
+	{
+		_rigid_body_painter.set_camera_position (position());
+		_rigid_body_painter.set_camera_angles (x_angle(), -y_angle(), 0_deg);
+		_rigid_body_painter.paint (*_rigid_body_system, canvas);
+	}
 }
 
 
@@ -203,6 +210,7 @@ RigidBodyViewer::display_menu()
 	QMenu menu;
 
 	// "Show constraints"
+	if (_rigid_body_system && !_rigid_body_system->constraints().empty())
 	{
 		auto* action = menu.addAction ("Show &constraints", [&] {
 			_rigid_body_painter.set_constraints_visible (!_rigid_body_painter.constraints_visible());
@@ -238,7 +246,24 @@ RigidBodyViewer::display_menu()
 		action->setChecked (_rigid_body_painter.angular_momenta_visible());
 	}
 
+	// "Camera follows the main body"
+	{
+		auto* action = menu.addAction ("Camera orientation follows the &main body", [&] {
+			_rigid_body_painter.set_following_body_orientation (!_rigid_body_painter.following_body_orientation());
+		});
+		action->setCheckable (true);
+		action->setChecked (_rigid_body_painter.following_body_orientation());
+	}
+
 	return !!menu.exec (QCursor::pos());
+}
+
+
+void
+RigidBodyViewer::show_configurator()
+{
+	if (_machine)
+		_machine->show_configurator();
 }
 
 } // namespace xf

@@ -14,18 +14,18 @@
 #ifndef XEFIS__SUPPORT__SIMULATION__RIGID_BODY__CONSTRAINT_H__INCLUDED
 #define XEFIS__SUPPORT__SIMULATION__RIGID_BODY__CONSTRAINT_H__INCLUDED
 
-// Standard:
-#include <cstddef>
-#include <optional>
-
-// Neutrino:
-#include <neutrino/logger.h>
-
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/support/nature/force_moments.h>
 #include <xefis/support/simulation/rigid_body/body.h>
 #include <xefis/support/simulation/rigid_body/connected_bodies.h>
+
+// Neutrino:
+#include <neutrino/logger.h>
+
+// Standard:
+#include <cstddef>
+#include <optional>
 
 
 namespace xf::rigid_body {
@@ -168,6 +168,15 @@ class Constraint: public ConnectedBodies
 	calculated_constraint_forces (ConstraintForces const&)
 	{ }
 
+	/**
+	 * Access the previous calculation ForceMoments used by the solver
+	 * to figure out if required simulation precision has been acquired
+	 * for this constraint.
+	 */
+	std::optional<ForceMoments<WorldSpace>>&
+	previous_calculation_force_moments()
+		{ return _previous_calculation_force_moments; }
+
   protected:
 	/**
 	 * Should return calculated constraint forces.
@@ -234,6 +243,8 @@ class Constraint: public ConnectedBodies
 	std::optional<si::Force>	_breaking_force;
 	std::optional<si::Torque>	_breaking_torque;
 	double						_baumgarte_factor	{ kDefaultBaumgarteFactor };
+	std::optional<ForceMoments<WorldSpace>>
+								_previous_calculation_force_moments;
 };
 
 

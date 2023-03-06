@@ -1,6 +1,6 @@
 /* vim:ts=4
  *
- * Copyleft 2019  Michał Gawron
+ * Copyleft 2022  Michał Gawron
  * Marduk Unix Labs, http://mulabs.org/
  *
  * This program is free software: you can redistribute it and/or modify
@@ -14,8 +14,11 @@
 #ifndef XEFIS__SUPPORT__UI__RIGID_BODY_PAINTER_H__INCLUDED
 #define XEFIS__SUPPORT__UI__RIGID_BODY_PAINTER_H__INCLUDED
 
-// Standard:
-#include <cstddef>
+// Xefis:
+#include <xefis/config/all.h>
+#include <xefis/support/math/euler_angles.h>
+#include <xefis/support/simulation/rigid_body/system.h>
+#include <xefis/support/ui/gl_space.h>
 
 // Qt:
 #include <QOpenGLFunctions>
@@ -23,11 +26,8 @@
 #include <QRect>
 #include <QPoint>
 
-// Xefis:
-#include <xefis/config/all.h>
-#include <xefis/support/math/euler_angles.h>
-#include <xefis/support/simulation/rigid_body/system.h>
-#include <xefis/support/ui/gl_space.h>
+// Standard:
+#include <cstddef>
 
 
 namespace xf {
@@ -61,6 +61,19 @@ class RigidBodyPainter: protected QOpenGLFunctions
 		{ _followed_body = followed_body; }
 
 	/**
+	 * Enable camera orientation following the main body.
+	 * Enabled by default.
+	 */
+	void
+	set_following_body_orientation (bool enabled) noexcept
+		{ _following_orientation = enabled; }
+
+	[[nodiscard]]
+	bool
+	following_body_orientation() const noexcept
+		{ return _following_orientation; }
+
+	/**
 	 * Set planet body.
 	 *
 	 * It's used to correctly display ground and sky location
@@ -72,12 +85,6 @@ class RigidBodyPainter: protected QOpenGLFunctions
 	void
 	set_planet (rigid_body::Body* planet_body) noexcept
 		{ _planet_body = planet_body; }
-
-	/**
-	 * Paint the system.
-	 */
-	void
-	paint (rigid_body::System const& system, QOpenGLPaintDevice& canvas);
 
 	/**
 	 * Set camera focus point.
@@ -152,6 +159,12 @@ class RigidBodyPainter: protected QOpenGLFunctions
 	set_angular_momenta_visible (bool visible) noexcept
 		{ _angular_momenta_visible = visible; }
 
+	/**
+	 * Paint the system.
+	 */
+	void
+	paint (rigid_body::System const& system, QOpenGLPaintDevice& canvas);
+
   private:
 	void
 	setup (QOpenGLPaintDevice&);
@@ -160,11 +173,18 @@ class RigidBodyPainter: protected QOpenGLFunctions
 	setup_camera();
 
 	void
+	apply_camera_rotations();
+
+	void
 	setup_light();
 
 	void
 	paint_world (rigid_body::System const&, QOpenGLPaintDevice&);
 
+	/**
+	 * Red - X, Green - Y, Blue - Z
+	 * (RGB - XYZ)
+	 */
 	void
 	paint_ecef_basis (QOpenGLPaintDevice&);
 
@@ -204,6 +224,7 @@ class RigidBodyPainter: protected QOpenGLFunctions
 	LonLatRadius						_position_on_earth			{ 0_deg, 0_deg, 0_m };
 	GLSpace								_gl;
 	rigid_body::Body*					_followed_body				{ nullptr };
+	bool								_following_orientation		{ true };
 	rigid_body::Body*					_planet_body				{ nullptr };
 	bool								_constraints_visible		{ false };
 	bool								_forces_visible				{ false };
@@ -215,9 +236,9 @@ class RigidBodyPainter: protected QOpenGLFunctions
 inline void
 RigidBodyPainter::set_camera_angles (si::Angle const x, si::Angle const y, si::Angle const z)
 {
-	_camera_angles[0] = x;
-	_camera_angles[1] = y;
-	_camera_angles[2] = z;
+	_camera_angles[0] = x; // Pitch
+	_camera_angles[1] = y; // Yaw
+	_camera_angles[2] = z; // Roll
 }
 
 } // namespace xf

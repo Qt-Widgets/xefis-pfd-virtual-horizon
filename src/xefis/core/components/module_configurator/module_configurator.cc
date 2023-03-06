@@ -11,18 +11,18 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
-// Standard:
-#include <cstddef>
-
-// Qt:
-#include <QBoxLayout>
+// Local:
+#include "module_configurator.h"
 
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/support/qt/ownership_breaker.h>
 
-// Local:
-#include "module_configurator.h"
+// Qt:
+#include <QBoxLayout>
+
+// Standard:
+#include <cstddef>
 
 
 namespace xf {
@@ -86,7 +86,7 @@ ModuleConfigurator::screen_selected (Screen& screen)
 
 
 void
-ModuleConfigurator::module_selected (BasicModule& module)
+ModuleConfigurator::module_selected (Module& module)
 {
 	auto gmw = _module_widgets.find (&module);
 

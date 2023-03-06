@@ -1,6 +1,6 @@
 /* vim:ts=4
  *
- * Copyleft 2012…2016  Michał Gawron
+ * Copyleft 2012…2022  Michał Gawron
  * Marduk Unix Labs, http://mulabs.org/
  *
  * This program is free software: you can redistribute it and/or modify
@@ -11,6 +11,31 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
+// Local:
+#include "xefis.h"
+
+// Xefis:
+#include <xefis/config/all.h>
+#include <xefis/core/components/configurator/configurator_widget.h>
+#include <xefis/core/executable.h>
+#include <xefis/core/system.h>
+#include <xefis/core/licenses.h>
+#include <xefis/support/airframe/airframe.h>
+#include <xefis/support/ui/sound_manager.h>
+#include <xefis/xefis_machine.h>
+
+// Neutrino:
+#include <neutrino/demangle.h>
+#include <neutrino/fail.h>
+#include <neutrino/time_helper.h>
+#include <neutrino/work_performer.h>
+
+// Qt:
+#include <QtCore/QTextCodec>
+
+// System:
+#include <signal.h>
+
 // Standard:
 #include <cstddef>
 #include <cstdlib>
@@ -19,30 +44,6 @@
 #include <string>
 #include <vector>
 #include <thread>
-
-// System:
-#include <signal.h>
-
-// Qt:
-#include <QtCore/QTextCodec>
-
-// Neutrino:
-#include <neutrino/demangle.h>
-#include <neutrino/fail.h>
-#include <neutrino/time_helper.h>
-#include <neutrino/work_performer.h>
-
-// Xefis:
-#include <xefis/config/all.h>
-#include <xefis/core/components/configurator/configurator_widget.h>
-#include <xefis/core/system.h>
-#include <xefis/core/licenses.h>
-#include <xefis/support/airframe/airframe.h>
-#include <xefis/support/ui/sound_manager.h>
-#include <xefis/xefis_machine.h>
-
-// Local:
-#include "xefis.h"
 
 
 namespace xf {

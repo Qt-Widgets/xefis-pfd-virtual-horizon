@@ -14,13 +14,6 @@
 #ifndef XEFIS__MODULES__SIMULATION__VIRTUAL_PRESSURE_SENSOR_H__INCLUDED
 #define XEFIS__MODULES__SIMULATION__VIRTUAL_PRESSURE_SENSOR_H__INCLUDED
 
-// Standard:
-#include <cstddef>
-#include <random>
-
-// Neutrino:
-#include <neutrino/math/normal_distribution.h>
-
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/core/module.h>
@@ -28,8 +21,15 @@
 #include <xefis/core/socket.h>
 #include <xefis/support/simulation/aerodynamic.v0/flight_simulation.h>
 
+// Neutrino:
+#include <neutrino/math/normal_distribution.h>
 
-class VirtualPressureSensorIO: public xf::ModuleIO
+// Standard:
+#include <cstddef>
+#include <random>
+
+
+class VirtualPressureSensorIO: public xf::Module
 {
   public:
 	/*
@@ -46,10 +46,13 @@ class VirtualPressureSensorIO: public xf::ModuleIO
 
 	xf::ModuleOut<bool>								serviceable			{ this, "serviceable" };
 	xf::ModuleOut<si::Pressure>						pressure			{ this, "measured-pressure" };
+
+  public:
+	using xf::Module::Module;
 };
 
 
-class VirtualPressureSensor: public xf::Module<VirtualPressureSensorIO>
+class VirtualPressureSensor: public VirtualPressureSensorIO
 {
   private:
 	static constexpr char kLoggerScope[] { "mod::VirtualPressureSensor" };
@@ -67,7 +70,6 @@ class VirtualPressureSensor: public xf::Module<VirtualPressureSensorIO>
 	VirtualPressureSensor (xf::sim::FlightSimulation const&,
 						   Probe,
 						   xf::SpaceVector<si::Length, xf::AirframeFrame> const& mount_location,
-						   std::unique_ptr<VirtualPressureSensorIO>,
 						   xf::Logger const&,
 						   std::string_view const& instance = {});
 
@@ -76,6 +78,7 @@ class VirtualPressureSensor: public xf::Module<VirtualPressureSensorIO>
 	process (xf::Cycle const&) override;
 
   private:
+	VirtualPressureSensorIO&						_io					{ *this };
 	xf::Logger										_logger;
 	xf::sim::FlightSimulation const&				_flight_simulation;
 	Probe											_probe;

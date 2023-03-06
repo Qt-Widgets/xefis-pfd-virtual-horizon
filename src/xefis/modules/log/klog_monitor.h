@@ -14,20 +14,20 @@
 #ifndef XEFIS__MODULES__LOG__KLOG_MONITOR_H__INCLUDED
 #define XEFIS__MODULES__LOG__KLOG_MONITOR_H__INCLUDED
 
-// Standard:
-#include <cstddef>
-#include <array>
-
-// Qt:
-#include <QtCore/QTimer>
-
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/core/module.h>
 #include <xefis/core/sockets/module_socket.h>
 
+// Qt:
+#include <QtCore/QTimer>
 
-class KLogMonitorIO: public xf::ModuleIO
+// Standard:
+#include <cstddef>
+#include <array>
+
+
+class KLogMonitorIO: public xf::Module
 {
   public:
 	/*
@@ -38,12 +38,15 @@ class KLogMonitorIO: public xf::ModuleIO
 	xf::ModuleOut<bool>	flag_io		{ this, "flags/io-error" };
 	xf::ModuleOut<bool>	flag_oops	{ this, "flags/oops" };
 	xf::ModuleOut<bool>	flag_bug	{ this, "flags/bug" };
+
+  public:
+	using xf::Module::Module;
 };
 
 
 class KLogMonitor:
 	public QObject,
-	public xf::Module<KLogMonitorIO>
+	public KLogMonitorIO
 {
 	Q_OBJECT
 
@@ -53,13 +56,14 @@ class KLogMonitor:
   public:
 	// Ctor
 	explicit
-	KLogMonitor (std::unique_ptr<KLogMonitorIO>, std::string_view const& instance = {});
+	KLogMonitor (std::string_view const& instance = {});
 
   private slots:
 	void
 	check_klog();
 
   private:
+	KLogMonitorIO&					_io			{ *this };
 	QTimer*							_timer		{ nullptr };
 	bool							_open		{ false };
 	std::array<char, kBufferSize>	_buffer;

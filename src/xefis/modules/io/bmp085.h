@@ -14,28 +14,28 @@
 #ifndef XEFIS__MODULES__IO__BMP085_H__INCLUDED
 #define XEFIS__MODULES__IO__BMP085_H__INCLUDED
 
-// Standard:
-#include <cstddef>
-
-// Qt:
-#include <QTimer>
-
-// Neutrino:
-#include <neutrino/bus/i2c.h>
-#include <neutrino/logger.h>
-
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/core/module.h>
 #include <xefis/core/setting.h>
 #include <xefis/core/sockets/module_socket.h>
 
+// Neutrino:
+#include <neutrino/bus/i2c.h>
+#include <neutrino/logger.h>
+
+// Qt:
+#include <QTimer>
+
+// Standard:
+#include <cstddef>
+
 
 namespace si = neutrino::si;
 using namespace neutrino::si::literals;
 
 
-class BMP085_IO: public xf::ModuleIO
+class BMP085_IO: public xf::Module
 {
   public:
 	/*
@@ -54,6 +54,9 @@ class BMP085_IO: public xf::ModuleIO
 	xf::ModuleOut<bool>					serviceable					{ this, "serviceable" };
 	xf::ModuleOut<si::Temperature>		temperature					{ this, "measured-temperature" };
 	xf::ModuleOut<si::Pressure>			pressure					{ this, "measured-pressure" };
+
+  public:
+	using xf::Module::Module;
 };
 
 
@@ -64,7 +67,7 @@ class BMP085_IO: public xf::ModuleIO
  */
 class BMP085:
 	public QObject,
-	public xf::Module<BMP085_IO>
+	public BMP085_IO
 {
 	Q_OBJECT
 
@@ -86,7 +89,7 @@ class BMP085:
   public:
 	// Ctor
 	explicit
-	BMP085 (std::unique_ptr<BMP085_IO>, xf::Logger const&, std::string_view const& instance = {});
+	BMP085 (xf::Logger const&, std::string_view const& instance = {});
 
 	// Module API
 	void
@@ -144,6 +147,7 @@ class BMP085:
 	static constexpr uint8_t	MC_REG	= 0xbc;
 	static constexpr uint8_t	MD_REG	= 0xbe;
 
+	BMP085_IO&					_io							{ *this };
 	xf::Logger					_logger;
 	// Data:
 	xf::i2c::Device				_i2c_device;

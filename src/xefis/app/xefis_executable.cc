@@ -11,21 +11,20 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
+// Xefis:
+#include <xefis/app/xefis.h>
+#include <xefis/config/all.h>
+#include <xefis/core/executable.h>
+
 // Standard:
 #include <cstddef>
-#include <memory>
-
-// Neutrino:
-#include <neutrino/test/auto_test.h>
-
-// Xefis:
-#include <xefis/config/all.h>
-#include <xefis/core/machine.h>
 
 
-int
-main (int, char**, char**)
+int main (int argc, char** argv, char**)
 {
-	return neutrino::AutoTest::run_all() ? EXIT_SUCCESS : EXIT_FAILURE;
+	return xf::setup_xefis_executable(argc, argv, [&argc, &argv] {
+		auto app = std::make_unique<xf::Xefis> (argc, argv);
+		app->exec();
+	});
 }
 

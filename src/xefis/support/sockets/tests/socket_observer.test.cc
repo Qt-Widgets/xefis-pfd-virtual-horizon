@@ -11,18 +11,18 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
-// Standard:
-#include <cstddef>
+// Xefis:
+#include <xefis/core/cycle.h>
+#include <xefis/core/module.h>
+#include <xefis/core/sockets/module_out.h>
+#include <xefis/core/sockets/socket.h>
+#include <xefis/support/sockets/socket_observer.h>
 
 // Neutrino:
 #include <neutrino/test/auto_test.h>
 
-// Xefis:
-#include <xefis/core/cycle.h>
-#include <xefis/core/module_io.h>
-#include <xefis/core/sockets/module_out.h>
-#include <xefis/core/sockets/socket.h>
-#include <xefis/support/sockets/socket_observer.h>
+// Standard:
+#include <cstddef>
 
 
 namespace xf::test {
@@ -56,13 +56,10 @@ class TestCycle: public Cycle
 template<class T>
 	struct TestEnvironment
 	{
-	  private:
-		std::unique_ptr<ModuleIO>	io		{ std::make_unique<ModuleIO>() };
-
 	  public:
-		ModuleOut<T>				out		{ io.get(), "out" };
-		ModuleIn<T>					in		{ io.get(), "in" };
-		Module<ModuleIO>			module	{ std::move (io) };
+		Module						module;
+		ModuleOut<T>				out		{ &module, "out" };
+		ModuleIn<T>					in		{ &module, "in" };
 		TestCycle					cycle;
 		SocketObserver				observer;
 		std::optional<T>			result;

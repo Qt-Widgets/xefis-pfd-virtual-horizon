@@ -14,17 +14,6 @@
 #ifndef XEFIS__SUPPORT__SIMULATION__RIGID_BODY__IMPULSE_SOLVER_H__INCLUDED
 #define XEFIS__SUPPORT__SIMULATION__RIGID_BODY__IMPULSE_SOLVER_H__INCLUDED
 
-// Standard:
-#include <algorithm>
-#include <cstddef>
-#include <memory>
-#include <type_traits>
-#include <vector>
-
-// Neutrino:
-#include <neutrino/noncopyable.h>
-#include <neutrino/sequence.h>
-
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/support/nature/acceleration_moments.h>
@@ -35,6 +24,17 @@
 #include <xefis/support/simulation/rigid_body/constraint.h>
 #include <xefis/support/simulation/rigid_body/frame_precalculation.h>
 #include <xefis/support/simulation/rigid_body/system.h>
+
+// Neutrino:
+#include <neutrino/noncopyable.h>
+#include <neutrino/sequence.h>
+
+// Standard:
+#include <algorithm>
+#include <cstddef>
+#include <memory>
+#include <type_traits>
+#include <vector>
 
 
 namespace xf::rigid_body {
@@ -53,29 +53,34 @@ class Limits
 
 
 /**
+ * Used by ImpulseSolver to give information about each evolution details.
+ */
+class EvolutionDetails
+{
+  public:
+	size_t	iterations_run	{ 0 };
+	bool	converged		{ false };
+};
+
+
+/**
  * Simple impulse solver for rigid_body::System.
  */
 class ImpulseSolver: private Noncopyable
 {
-	static constexpr size_t kDefaultIterations { 10 };
+	static constexpr size_t kDefaultMaxIterations { 1000 };
 
   public:
 	/**
 	 */
 	explicit
-	ImpulseSolver (System&, uint32_t max_iterations = kDefaultIterations);
+	ImpulseSolver (System&, uint32_t max_iterations = kDefaultMaxIterations);
 
 	/**
 	 * Evolve the system physically by given Δt.
 	 */
-	void
+	EvolutionDetails
 	evolve (si::Time dt);
-
-	/**
-	 * Apply given Baumgarte stabilization factor to all constraints.
-	 */
-	void
-	set_baumgarte_factor (double factor) noexcept;
 
 	/**
 	 * Set limits applied during evolution.
@@ -88,8 +93,8 @@ class ImpulseSolver: private Noncopyable
 	 * Set number of iterations of the converging algorithm.
 	 */
 	void
-	set_iterations (size_t const iterations) noexcept
-		{ _iterations = iterations; }
+	set_max_iterations (size_t const max_iterations) noexcept
+		{ _max_iterations = max_iterations; }
 
   private:
 	void
@@ -104,7 +109,7 @@ class ImpulseSolver: private Noncopyable
 	void
 	update_external_forces();
 
-	void
+	EvolutionDetails
 	update_constraint_forces (si::Time dt);
 
 	static AccelerationMoments<WorldSpace>
@@ -136,7 +141,7 @@ class ImpulseSolver: private Noncopyable
   private:
 	System&					_system;
 	std::optional<Limits>	_limits;
-	size_t					_iterations			{ kDefaultIterations };
+	size_t					_max_iterations		{ kDefaultMaxIterations };
 	uint64_t				_processed_frames	{ 0 };
 };
 

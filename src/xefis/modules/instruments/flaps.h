@@ -14,9 +14,6 @@
 #ifndef XEFIS__MODULES__INSTRUMENTS__FLAPS_H__INCLUDED
 #define XEFIS__MODULES__INSTRUMENTS__FLAPS_H__INCLUDED
 
-// Standard:
-#include <cstddef>
-
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/core/graphics.h>
@@ -26,12 +23,14 @@
 #include <xefis/support/instrument/instrument_support.h>
 #include <xefis/support/sockets/socket_observer.h>
 
+// Standard:
+#include <cstddef>
+
 
 namespace si = neutrino::si;
 
 
-// TODO handle nans
-class FlapsIO: public xf::ModuleIO
+class FlapsIO: public xf::Instrument
 {
   public:
 	/*
@@ -47,11 +46,15 @@ class FlapsIO: public xf::ModuleIO
 
 	xf::ModuleIn<si::Angle>	current_angle	{ this, "current-angle" };
 	xf::ModuleIn<si::Angle>	set_angle		{ this, "set-angle" };
+
+  public:
+	using xf::Instrument::Instrument;
 };
 
 
+// TODO handle nans
 class Flaps:
-	public xf::Instrument<FlapsIO>,
+	public FlapsIO,
 	private xf::InstrumentSupport
 {
   private:
@@ -66,7 +69,7 @@ class Flaps:
   public:
 	// Ctor
 	explicit
-	Flaps (std::unique_ptr<FlapsIO>, xf::Graphics const&, std::string_view const& instance = {});
+	Flaps (xf::Graphics const&, std::string_view const& instance = {});
 
 	// Module API
 	void
@@ -81,7 +84,8 @@ class Flaps:
 	async_paint (xf::PaintRequest const&, PaintingParams const&) const;
 
   private:
-	xf::SocketObserver _inputs_observer;
+	FlapsIO&			_io { *this };
+	xf::SocketObserver	_inputs_observer;
 };
 
 #endif

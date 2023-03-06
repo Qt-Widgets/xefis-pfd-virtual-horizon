@@ -14,9 +14,6 @@
 #ifndef XEFIS__MODULES__INSTRUMENTS__DEBUG_FORCES_H__INCLUDED
 #define XEFIS__MODULES__INSTRUMENTS__DEBUG_FORCES_H__INCLUDED
 
-// Standard:
-#include <cstddef>
-
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/core/graphics.h>
@@ -24,12 +21,15 @@
 #include <xefis/core/sockets/socket.h>
 #include <xefis/support/instrument/instrument_support.h>
 
+// Standard:
+#include <cstddef>
+
 
 namespace si = neutrino::si;
 
 
 // TODO handle nans
-class DebugForcesIO: public xf::ModuleIO
+class DebugForcesIO: public xf::Instrument
 {
   public:
 	/*
@@ -45,11 +45,14 @@ class DebugForcesIO: public xf::ModuleIO
 	xf::ModuleIn<si::Acceleration>	centrifugal_accel_x				{ this, "centrifugal-acceleration/x" };
 	xf::ModuleIn<si::Acceleration>	centrifugal_accel_y				{ this, "centrifugal-acceleration/y" };
 	xf::ModuleIn<si::Acceleration>	centrifugal_accel_z				{ this, "centrifugal-acceleration/z" };
+
+  public:
+	using xf::Instrument::Instrument;
 };
 
 
 class DebugForces:
-	public xf::Instrument<DebugForcesIO>,
+	public DebugForcesIO,
 	private xf::InstrumentSupport
 {
   private:
@@ -69,7 +72,7 @@ class DebugForces:
   public:
 	// Ctor
 	explicit
-	DebugForces (std::unique_ptr<DebugForcesIO>, xf::Graphics const&, std::string_view const& instance = {});
+	DebugForces (xf::Graphics const&, std::string_view const& instance = {});
 
 	// Module API
 	void
@@ -82,6 +85,9 @@ class DebugForces:
   private:
 	void
 	async_paint (xf::PaintRequest const&, PaintingParams const&) const;
+
+  private:
+	DebugForcesIO& _io { *this };
 };
 
 #endif

@@ -14,12 +14,12 @@
 #ifndef XEFIS__SUPPORT__MATH__POSITION_ROTATION_H__INCLUDED
 #define XEFIS__SUPPORT__MATH__POSITION_ROTATION_H__INCLUDED
 
-// Standard:
-#include <cstddef>
-
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/support/math/geometry.h>
+
+// Standard:
+#include <cstddef>
 
 
 namespace xf {
@@ -169,6 +169,15 @@ template<class pBaseSpace = void, class pSpace = pBaseSpace>
 			auto
 			unbound_transform_to_base (InputObject const& input) const
 				{ return _body_to_base_rotation * input; }
+
+		/**
+		 * Reframe current placement into different spaces.
+		 */
+		template<class NewBaseSpace, class NewSpace>
+			[[nodiscard]]
+			constexpr Placement<NewBaseSpace, NewSpace>
+			reframe() const
+				{ return reinterpret_cast<Placement<NewBaseSpace, NewSpace> const&> (*this); }
 
 	  private:
 		SpaceVector<si::Length, BaseSpace>	_position				{ math::zero };

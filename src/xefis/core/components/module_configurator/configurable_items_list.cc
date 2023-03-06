@@ -11,25 +11,25 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
-// Standard:
-#include <cstddef>
-#include <set>
-
-// Qt:
-#include <QtWidgets/QLayout>
-#include <QtWidgets/QHeaderView>
-
-// Neutrino:
-#include <neutrino/qt/qutils.h>
-
-// Xefis:
-#include <xefis/config/all.h>
-
 // Local:
 #include "configurable_items_list.h"
 #include "module_item.h"
 #include "processing_loop_item.h"
 #include "screen_item.h"
+
+// Xefis:
+#include <xefis/config/all.h>
+
+// Neutrino:
+#include <neutrino/qt/qutils.h>
+
+// Qt:
+#include <QtWidgets/QLayout>
+#include <QtWidgets/QHeaderView>
+
+// Standard:
+#include <cstddef>
+#include <set>
 
 
 namespace xf::configurator {
@@ -153,11 +153,11 @@ ConfigurableItemsList::read()
 				auto& module = module_details.module();
 
 				// Don't add Instruments. They will be children of Screen items.
-				if (!dynamic_cast<BasicInstrument*> (&module))
+				if (!dynamic_cast<Instrument*> (&module))
 					_tmp_module_ptrs.push_back (&module);
 			}
 
-			populate_subtree (*pli, _tmp_module_ptrs, [](auto* item) -> BasicModule* {
+			populate_subtree (*pli, _tmp_module_ptrs, [](auto* item) -> Module* {
 				if (auto* mi = dynamic_cast<ModuleItem*> (item))
 					return &mi->module();
 				else
@@ -178,7 +178,7 @@ ConfigurableItemsList::read()
 			for (auto& disclosure: screen.instrument_tracker())
 				_tmp_module_ptrs.push_back (&*disclosure.registrant());
 
-			populate_subtree (*si, _tmp_module_ptrs, [](auto* item) -> BasicModule* {
+			populate_subtree (*si, _tmp_module_ptrs, [](auto* item) -> Module* {
 				if (auto* mi = dynamic_cast<ModuleItem*> (item))
 					return &mi->module();
 				else

@@ -11,22 +11,22 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
-// Standard:
-#include <cstddef>
-#include <variant>
-
-// Neutrino:
-#include <neutrino/variant.h>
+// Local:
+#include "engine_torque.h"
 
 // Xefis:
 #include <xefis/config/all.h>
 
-// Local:
-#include "engine_torque.h"
+// Neutrino:
+#include <neutrino/variant.h>
+
+// Standard:
+#include <cstddef>
+#include <variant>
 
 
-EngineTorque::EngineTorque (std::unique_ptr<EngineTorqueIO> module_io, std::string_view const& instance):
-	Module (std::move (module_io), instance)
+EngineTorque::EngineTorque (std::string_view const& instance):
+	EngineTorqueIO (instance)
 { }
 
 
@@ -35,17 +35,17 @@ EngineTorque::process (xf::Cycle const&)
 {
 	std::visit ([&] (auto&& efficiency) {
 		compute_torque (std::forward<decltype (efficiency)> (efficiency));
-	}, *io.motor_efficiency);
+	}, *_io.motor_efficiency);
 }
 
 
 void
 EngineTorque::compute_torque (double motor_efficiency)
 {
-	if (io.engine_current)
-		io.engine_torque = si::convert (motor_efficiency * *io.engine_current / *io.motor_kv);
+	if (_io.engine_current)
+		_io.engine_torque = si::convert (motor_efficiency * *_io.engine_current / *_io.motor_kv);
 	else
-		io.engine_torque = xf::nil;
+		_io.engine_torque = xf::nil;
 }
 
 
@@ -54,9 +54,9 @@ EngineTorque::compute_torque (EfficiencyField const& motor_efficiency)
 {
 	std::optional<double> efficiency;
 
-	if (io.engine_speed && (efficiency = motor_efficiency.value (*io.engine_speed)))
+	if (_io.engine_speed && (efficiency = motor_efficiency.value (*_io.engine_speed)))
 		compute_torque (*efficiency);
 	else
-		io.engine_torque = xf::nil;
+		_io.engine_torque = xf::nil;
 }
 

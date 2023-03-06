@@ -14,8 +14,14 @@
 #ifndef XEFIS__SUPPORT__UI__RIGID_BODY_VIEWER_H__INCLUDED
 #define XEFIS__SUPPORT__UI__RIGID_BODY_VIEWER_H__INCLUDED
 
-// Standard:
-#include <cstddef>
+// Xefis:
+#include <xefis/config/all.h>
+#include <xefis/support/simulation/rigid_body/system.h>
+#include <xefis/support/ui/gl_animation_widget.h>
+#include <xefis/support/ui/rigid_body_painter.h>
+
+// Neutrino:
+#include <neutrino/qt/qutils.h>
 
 // Qt:
 #include <QKeyEvent>
@@ -23,28 +29,26 @@
 #include <QWheelEvent>
 #include <QWidget>
 
-// Neutrino:
-#include <neutrino/qt/qutils.h>
-
-// Xefis:
-#include <xefis/config/all.h>
-#include <xefis/support/simulation/rigid_body/system.h>
-#include <xefis/support/ui/gl_animation_window.h>
-#include <xefis/support/ui/rigid_body_painter.h>
+// Standard:
+#include <cstddef>
 
 
 namespace xf {
+
+class Machine;
 
 /**
  * Window showing rigid_body::System state as animation (but the system must be evolved elsewhere).
  * Allows rotation/translation with mouse.
  */
-class RigidBodyViewer: public GLAnimationWindow
+class RigidBodyViewer: public GLAnimationWidget
 {
+	Q_OBJECT
+
   public:
 	// Evolution function called before each display frame:
 	using Evolve = std::function<void (si::Time dt)>;
-	using FPSMode = GLAnimationWindow::FPSMode;
+	using FPSMode = GLAnimationWidget::FPSMode;
 
 	enum class Playback
 	{
@@ -69,12 +73,27 @@ class RigidBodyViewer: public GLAnimationWindow
 	static constexpr float		kHighPrecision		{ 0.05f };
 
   public:
+	// Ctor
+	explicit
+	RigidBodyViewer (QWidget* parent, RefreshRate);
+
 	/**
+	 * Assign a rigid body system. Pass nullptr to unassign.
+	 *
 	 * \param	evolve
 	 *			Evolution function called before each redraw.
 	 *			May be nullptr.
 	 */
-	RigidBodyViewer (rigid_body::System&, QSize window_size, RefreshRate, Evolve evolve);
+	void
+	set_rigid_body_system (rigid_body::System*, Evolve evolve_function = {});
+
+	/**
+	 * Set related machine. Used to show configurator widget when pressing Esc.
+	 * Pass nullptr to unset.
+	 */
+	void
+	set_machine (xf::Machine* machine)
+		{ _machine = machine; }
 
 	/**
 	 * Calls set_followed() on internal RigidBodyPainter.
@@ -156,22 +175,35 @@ class RigidBodyViewer: public GLAnimationWindow
 	bool
 	display_menu();
 
+  private slots:
+	void
+	show_configurator();
+
   private:
-	rigid_body::System&					_rigid_body_system;
+	Machine*							_machine						{ nullptr };
+	rigid_body::System*					_rigid_body_system				{ nullptr };
 	RigidBodyPainter					_rigid_body_painter;
 	Evolve								_evolve;
 	QPoint								_last_pos;
-	bool								_changing_rotation				{ false }; // TODO :1 bit in c++2a
-	bool								_changing_translation			{ false };
+	bool								_changing_rotation: 1			{ false };
+	bool								_changing_translation: 1		{ false };
 	// Right-click and move causes rotation of the view, right-click without moving opens a popup menu:
-	bool								_mouse_moved_since_press		{ true };
+	bool								_mouse_moved_since_press: 1		{ true };
 	// Prevents menu reappearing immediately when trying to close it with a right click:
-	bool								_prevent_menu_reappear			{ false };
+	bool								_prevent_menu_reappear: 1		{ false };
 	Playback							_playback						{ Playback::Paused };
 	SpaceLength<rigid_body::WorldSpace>	_position						{ kDefaultPosition };
 	si::Angle							_x_angle						{ kDefaultXAngle };
 	si::Angle							_y_angle						{ kDefaultYAngle };
 };
+
+
+inline void
+RigidBodyViewer::set_rigid_body_system (rigid_body::System* system, Evolve evolve)
+{
+	_rigid_body_system = system;
+	_evolve = evolve;
+}
 
 } // namespace xf
 

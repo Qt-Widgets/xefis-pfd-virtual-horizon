@@ -14,12 +14,6 @@
 #ifndef XEFIS__MODULES__SYSTEMS__AFCS_AP_H__INCLUDED
 #define XEFIS__MODULES__SYSTEMS__AFCS_AP_H__INCLUDED
 
-// Standard:
-#include <cstddef>
-
-// Neutrino:
-#include <neutrino/logger.h>
-
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/core/module.h>
@@ -29,12 +23,18 @@
 #include <xefis/support/sockets/socket_observer.h>
 #include <xefis/utility/smoother.h>
 
+// Neutrino:
+#include <neutrino/logger.h>
+
+// Standard:
+#include <cstddef>
+
 
 namespace si = neutrino::si;
 using namespace neutrino::si::literals;
 
 
-class AFCS_AP_IO: public xf::ModuleIO
+class AFCS_AP_IO: public xf::Module
 {
   public:
 	/*
@@ -67,13 +67,16 @@ class AFCS_AP_IO: public xf::ModuleIO
 	xf::ModuleOut<bool>				serviceable				{ this, "serviceable" };
 	xf::ModuleOut<si::Angle>		elevator				{ this, "elevator" };
 	xf::ModuleOut<si::Angle>		ailerons				{ this, "ailerons" };
+
+  public:
+	using xf::Module::Module;
 };
 
 
 /**
  * Steers control surfaces (ailerons, elevator) to obtain desired orientation (pitch, roll).
  */
-class AFCS_AP: public xf::Module<AFCS_AP_IO>
+class AFCS_AP: public AFCS_AP_IO
 {
   private:
 	static constexpr char kLoggerScope[] = "mod::AFCS_AP";
@@ -81,7 +84,7 @@ class AFCS_AP: public xf::Module<AFCS_AP_IO>
   public:
 	// Ctor
 	explicit
-	AFCS_AP (std::unique_ptr<AFCS_AP_IO>, xf::Logger const&, std::string_view const& instance = {});
+	AFCS_AP (xf::Logger const&, std::string_view const& instance = {});
 
   protected:
 	// Module API
@@ -110,6 +113,7 @@ class AFCS_AP: public xf::Module<AFCS_AP_IO>
 	diagnose();
 
   private:
+	AFCS_AP_IO&								_io					{ *this };
 	xf::Logger								_logger;
 	xf::PIDController<si::Angle, si::Angle>	_elevator_pid;
 	xf::PIDController<si::Angle, si::Angle>	_ailerons_pid;

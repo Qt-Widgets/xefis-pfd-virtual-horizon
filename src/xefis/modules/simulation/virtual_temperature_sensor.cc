@@ -11,29 +11,28 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
-// Standard:
-#include <cstddef>
-
-// Neutrino:
-#include <neutrino/numeric.h>
+// Local:
+#include "virtual_temperature_sensor.h"
 
 // Xefis:
 #include <xefis/config/all.h>
 
-// Local:
-#include "virtual_temperature_sensor.h"
+// Neutrino:
+#include <neutrino/numeric.h>
+
+// Standard:
+#include <cstddef>
 
 
 VirtualTemperatureSensor::VirtualTemperatureSensor (xf::sim::FlightSimulation const& flight_simulation,
 													xf::SpaceVector<si::Length, xf::AirframeFrame> const& mount_location,
-													std::unique_ptr<VirtualTemperatureSensorIO> module_io,
 													xf::Logger const& logger,
 													std::string_view const& instance):
-	Module (std::move (module_io), instance),
+	VirtualTemperatureSensorIO (instance),
 	_logger (logger.with_scope (std::string (kLoggerScope) + "#" + instance)),
 	_flight_simulation (flight_simulation),
 	_mount_location (mount_location),
-	_noise (*io.noise)
+	_noise (*_io.noise)
 { }
 
 
@@ -43,11 +42,11 @@ VirtualTemperatureSensor::process (xf::Cycle const& cycle)
 	auto const atmstate = _flight_simulation.complete_atmosphere_state_at (_mount_location);
 	auto const& air = atmstate.air;
 
-	io.serviceable = true;
+	_io.serviceable = true;
 
-	if (_last_measure_time + *io.update_interval < cycle.update_time())
+	if (_last_measure_time + *_io.update_interval < cycle.update_time())
 	{
-		io.temperature = xf::quantized (_noise (_random_generator) + air.temperature, *io.resolution);
+		_io.temperature = xf::quantized (_noise (_random_generator) + air.temperature, *_io.resolution);
 		_last_measure_time = cycle.update_time();
 	}
 }

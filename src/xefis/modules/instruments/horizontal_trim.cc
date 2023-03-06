@@ -11,34 +11,34 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
-// Standard:
-#include <cstddef>
-
-// Lib:
-#include <boost/format.hpp>
-
-// Neutrino:
-#include <neutrino/numeric.h>
+// Local:
+#include "horizontal_trim.h"
 
 // Xefis:
 #include <xefis/config/all.h>
 
-// Local:
-#include "horizontal_trim.h"
+// Neutrino:
+#include <neutrino/numeric.h>
+
+// Lib:
+#include <boost/format.hpp>
+
+// Standard:
+#include <cstddef>
 
 
-HorizontalTrim::HorizontalTrim (std::unique_ptr<HorizontalTrimIO> module_io, xf::Graphics const& graphics, std::string_view const& instance):
-	Instrument (std::move (module_io), instance),
+HorizontalTrim::HorizontalTrim (xf::Graphics const& graphics, std::string_view const& instance):
+	HorizontalTrimIO (instance),
 	InstrumentSupport (graphics)
 {
 	_inputs_observer.set_callback ([&]{
 		mark_dirty();
 	});
 	_inputs_observer.observe ({
-		&io.trim_value,
-		&io.trim_reference,
-		&io.trim_reference_minimum,
-		&io.trim_reference_maximum,
+		&_io.trim_value,
+		&_io.trim_reference,
+		&_io.trim_reference_minimum,
+		&_io.trim_reference_maximum,
 	});
 }
 
@@ -54,13 +54,13 @@ std::packaged_task<void()>
 HorizontalTrim::paint (xf::PaintRequest paint_request) const
 {
 	PaintingParams params;
-	params.label = *io.label;
-	params.label_min = *io.label_min;
-	params.label_max = *io.label_max;
-	params.trim_value = io.trim_value.get_optional();
-	params.trim_reference = io.trim_reference.get_optional();
-	params.trim_reference_minimum = io.trim_reference_minimum.get_optional();
-	params.trim_reference_maximum = io.trim_reference_maximum.get_optional();
+	params.label = *_io.label;
+	params.label_min = *_io.label_min;
+	params.label_max = *_io.label_max;
+	params.trim_value = _io.trim_value.get_optional();
+	params.trim_reference = _io.trim_reference.get_optional();
+	params.trim_reference_minimum = _io.trim_reference_minimum.get_optional();
+	params.trim_reference_maximum = _io.trim_reference_maximum.get_optional();
 
 	return std::packaged_task<void()> ([this, pr = std::move (paint_request), pp = std::move (params)] {
 		async_paint (pr, pp);

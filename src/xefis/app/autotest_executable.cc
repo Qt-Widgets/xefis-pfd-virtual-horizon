@@ -11,20 +11,21 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
-// Standard:
-#include <cstddef>
-
-// Neutrino:
-#include <neutrino/test/manual_test.h>
-
 // Xefis:
 #include <xefis/config/all.h>
+#include <xefis/core/machine.h>
+
+// Neutrino:
+#include <neutrino/test/auto_test.h>
+
+// Standard:
+#include <cstddef>
+#include <memory>
 
 
 int
 main (int, char**, char**)
 {
-	neutrino::ManualTest::run_all();
-	return EXIT_SUCCESS;
+	return neutrino::AutoTest::run_all() ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

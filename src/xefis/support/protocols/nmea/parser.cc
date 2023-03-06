@@ -11,19 +11,19 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
-// Standard:
-#include <cstddef>
-
-// Neutrino:
-#include <neutrino/responsibility.h>
+// Local:
+#include "parser.h"
+#include "exceptions.h"
 
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/utility/hextable.h>
 
-// Local:
-#include "parser.h"
-#include "exceptions.h"
+// Neutrino:
+#include <neutrino/responsibility.h>
+
+// Standard:
+#include <cstddef>
 
 
 namespace xf::nmea {
@@ -132,7 +132,7 @@ Parser::verify_sentence (std::string const& sentence)
 		// Verify checksum:
 		uint8_t expected_checksum = 0;
 		for (auto c = sentence.begin() + 1; c != sentence.end() - 3; ++c)
-			expected_checksum ^= *c;
+			expected_checksum ^= static_cast<uint8_t> (*c);
 
 		if (expected_checksum != parsed_checksum)
 			throw nmea::InvalidChecksum (expected_checksum, parsed_checksum);

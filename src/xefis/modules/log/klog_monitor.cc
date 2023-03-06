@@ -11,26 +11,26 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
+// Local:
+#include "klog_monitor.h"
+
+// Xefis:
+#include <xefis/config/all.h>
+
+// Neutrino:
+#include <neutrino/qt/qdom.h>
+
+// System:
+#include <sys/klog.h>
+
 // Standard:
 #include <cstddef>
 #include <algorithm>
 #include <cctype>
 
-// System:
-#include <sys/klog.h>
 
-// Neutrino:
-#include <neutrino/qt/qdom.h>
-
-// Xefis:
-#include <xefis/config/all.h>
-
-// Local:
-#include "klog_monitor.h"
-
-
-KLogMonitor::KLogMonitor (std::unique_ptr<KLogMonitorIO> module_io, std::string_view const& instance):
-	Module (std::move (module_io), instance)
+KLogMonitor::KLogMonitor (std::string_view const& instance):
+	KLogMonitorIO (instance)
 {
 	_timer = new QTimer (this);
 	_timer->setInterval (100);
@@ -38,10 +38,10 @@ KLogMonitor::KLogMonitor (std::unique_ptr<KLogMonitorIO> module_io, std::string_
 	QObject::connect (_timer, SIGNAL (timeout()), this, SLOT (check_klog()));
 	_timer->start();
 
-	io.flag_oom = true;
-	io.flag_io = true;
-	io.flag_oops = true;
-	io.flag_bug = true;
+	_io.flag_oom = true;
+	_io.flag_io = true;
+	_io.flag_oops = true;
+	_io.flag_bug = true;
 }
 
 
@@ -57,19 +57,19 @@ KLogMonitor::check_klog()
 
 		// Search for OOMs:
 		if (buffer.find ("oom-killer") != std::string::npos)
-			io.flag_oom = true;
+			_io.flag_oom = true;
 
 		// Search for I/O errors:
 		if (buffer.find ("I/O error") != std::string::npos)
-			io.flag_io = true;
+			_io.flag_io = true;
 
 		// Search for Oopses:
 		if (buffer.find (" oops") != std::string::npos)
-			io.flag_oops = true;
+			_io.flag_oops = true;
 
 		// Search for BUGs:
 		if (buffer.find (" bug") != std::string::npos)
-			io.flag_bug = true;
+			_io.flag_bug = true;
 	}
 }
 

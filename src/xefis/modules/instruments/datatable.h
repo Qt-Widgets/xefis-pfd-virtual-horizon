@@ -14,31 +14,29 @@
 #ifndef XEFIS__MODULES__INSTRUMENTS__DATATABLE_H__INCLUDED
 #define XEFIS__MODULES__INSTRUMENTS__DATATABLE_H__INCLUDED
 
-// Standard:
-#include <cstddef>
-#include <optional>
+// Xefis:
+#include <xefis/config/all.h>
+#include <xefis/core/graphics.h>
+#include <xefis/core/instrument.h>
+#include <xefis/core/sockets/socket.h>
+#include <xefis/support/instrument/instrument_support.h>
+#include <xefis/support/sockets/socket_observer.h>
+
+// Neutrino:
+#include <neutrino/synchronized.h>
 
 // Qt:
 #include <QtWidgets/QWidget>
 #include <QtXml/QDomElement>
 
-// Neutrino:
-#include <neutrino/synchronized.h>
-
-// Xefis:
-#include <xefis/config/all.h>
-#include <xefis/core/graphics.h>
-#include <xefis/core/instrument.h>
-#include <xefis/core/module_io.h>
-#include <xefis/core/sockets/socket.h>
-#include <xefis/core/xefis.h>
-#include <xefis/support/instrument/instrument_support.h>
-#include <xefis/support/sockets/socket_observer.h>
+// Standard:
+#include <cstddef>
+#include <optional>
 
 
 // TODO handle nans
 class Datatable:
-	public xf::Instrument<xf::ModuleIO>,
+	public xf::Instrument,
 	private xf::InstrumentSupport
 {
 	class Line

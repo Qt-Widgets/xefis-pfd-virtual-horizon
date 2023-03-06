@@ -11,28 +11,40 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
-// Standard:
-#include <cstddef>
-#include <memory>
-#include <thread>
-
-// Qt:
-#include <QFile>
-#include <QTextStream>
-
-// Neutrino:
-#include <neutrino/numeric.h>
-#include <neutrino/qt/qzdevice.h>
+// Local:
+#include "navaid_storage.h"
 
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/support/earth/earth.h>
 
-// Local:
-#include "navaid_storage.h"
+// Neutrino:
+#include <neutrino/exception.h>
+#include <neutrino/numeric.h>
+#include <neutrino/qt/qzdevice.h>
+
+// Qt:
+#include <QFile>
+#include <QTextStream>
+
+// Standard:
+#include <cstddef>
+#include <memory>
+#include <thread>
 
 
 namespace xf {
+
+class GzDataFileIteratorException: public Exception
+{
+  public:
+	// Ctor
+	explicit
+	GzDataFileIteratorException(std::string const& message):
+		Exception (message)
+	{ }
+};
+
 
 class GzDataFileIterator
 {
@@ -71,6 +83,8 @@ inline
 GzDataFileIterator::GzDataFileIterator (std::string_view const& path):
 	_file (QString::fromStdString (std::string (path)))
 {
+	using namespace std::string_literals;
+
 	if (_file.open (QFile::ReadOnly))
 	{
 		_decompressor = std::make_unique<QZDevice> (&_file);
@@ -82,7 +96,11 @@ GzDataFileIterator::GzDataFileIterator (std::string_view const& path):
 			operator++();
 			operator++();
 		}
+		else
+			throw GzDataFileIteratorException("could not open decompressor for file: "s + path);
 	}
+	else
+		throw GzDataFileIteratorException("could not open file: "s + path);
 }
 
 

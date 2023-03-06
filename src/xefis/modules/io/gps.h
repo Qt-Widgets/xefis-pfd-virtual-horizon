@@ -14,18 +14,6 @@
 #ifndef XEFIS__MODULES__IO__GPS_H__INCLUDED
 #define XEFIS__MODULES__IO__GPS_H__INCLUDED
 
-// Standard:
-#include <cstddef>
-#include <array>
-#include <map>
-
-// Qt:
-#include <QtCore/QSocketNotifier>
-
-// Neutrino:
-#include <neutrino/bus/serial_port.h>
-#include <neutrino/logger.h>
-
 // Xefis:
 #include <xefis/config/all.h>
 #include <xefis/core/module.h>
@@ -34,12 +22,24 @@
 #include <xefis/core/system.h>
 #include <xefis/support/protocols/nmea/parser.h>
 
+// Neutrino:
+#include <neutrino/bus/serial_port.h>
+#include <neutrino/logger.h>
+
+// Qt:
+#include <QtCore/QSocketNotifier>
+
+// Standard:
+#include <cstddef>
+#include <array>
+#include <map>
+
 
 namespace si = neutrino::si;
 using namespace neutrino::si::literals;
 
 
-class GPS_IO: public xf::ModuleIO
+class GPS_IO: public xf::Module
 {
   public:
 	/*
@@ -82,6 +82,9 @@ class GPS_IO: public xf::ModuleIO
 	xf::ModuleOut<int64_t>					dgps_station_id				{ this, "gps/dgps-station-id" };
 	xf::ModuleOut<si::Time>					fix_system_timestamp		{ this, "gps/fix/system-timestamp" };
 	xf::ModuleOut<si::Time>					fix_gps_timestamp			{ this, "gps/fix/gps-timestamp" };
+
+  public:
+	using xf::Module::Module;
 };
 
 
@@ -93,7 +96,7 @@ class GPS_IO: public xf::ModuleIO
  */
 class GPS:
 	public QObject,
-	public xf::Module<GPS_IO>
+	public GPS_IO
 {
 	Q_OBJECT
 
@@ -299,7 +302,7 @@ class GPS:
   public:
 	// Ctor
 	explicit
-	GPS (std::unique_ptr<GPS_IO>, xf::System*, xf::SerialPort::Configuration const&, xf::Logger const&, std::string_view const& instance = {});
+	GPS (xf::System*, xf::SerialPort::Configuration const&, xf::Logger const&, std::string_view const& instance = {});
 
 	// Dtor
 	~GPS();
@@ -348,6 +351,7 @@ class GPS:
 	logger();
 
   private:
+	GPS_IO&							_io							{ *this };
 	xf::Logger						_logger;
 	xf::System*						_system;
 	std::unique_ptr<PowerCycle>		_power_cycle;

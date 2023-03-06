@@ -11,20 +11,19 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
-// Standard:
-#include <cstddef>
-#include <algorithm>
-#include <iterator>
+// Local:
+#include "status.h"
+
+// Xefis:
+#include <xefis/config/all.h>
 
 // Neutrino:
 #include <neutrino/time_helper.h>
 
-// Xefis:
-#include <xefis/config/all.h>
-#include <xefis/core/xefis.h>
-
-// Local:
-#include "status.h"
+// Standard:
+#include <cstddef>
+#include <algorithm>
+#include <iterator>
 
 
 Status::Message::Message (std::string_view const& text, Severity severity):
@@ -93,11 +92,11 @@ Status::Cache::solve_scroll_and_cursor (std::vector<Message*> const& visible_mes
 }
 
 
-Status::Status (std::unique_ptr<StatusIO> module_io, xf::Graphics const& graphics, std::string_view const& instance):
-	Instrument (std::move (module_io), instance),
+Status::Status (xf::Graphics const& graphics, std::string_view const& instance):
+	StatusIO (instance),
 	InstrumentSupport (graphics)
 {
-	_input_cursor_decoder = std::make_unique<xf::SocketDeltaDecoder<>> (io.cursor_value, [this] (auto delta) {
+	_input_cursor_decoder = std::make_unique<xf::SocketDeltaDecoder<>> (_io.cursor_value, [this] (auto delta) {
 		if (delta > 0)
 		{
 			for (int i = 0; i < delta; ++i)
@@ -176,11 +175,11 @@ Status::process (xf::Cycle const& cycle)
 
 	// Update CAUTION and WARNING alarms:
 
-	io.master_caution =
+	_io.master_caution =
 		std::any_of (_visible_messages.begin(), _visible_messages.end(),
 					 [](auto const& m) { return m->severity() == Severity::Caution; });
 
-	io.master_warning =
+	_io.master_warning =
 		std::any_of (_visible_messages.begin(), _visible_messages.end(),
 					 [](auto const& m) { return m->severity() == Severity::Warning; });
 }
@@ -351,7 +350,7 @@ Status::recall()
 void
 Status::clear()
 {
-	if (xf::TimeHelper::now() - _last_message_timestamp > *io.status_minimum_display_time)
+	if (xf::TimeHelper::now() - _last_message_timestamp > *_io.status_minimum_display_time)
 	{
 		_hidden_messages.insert (_hidden_messages.end(), _visible_messages.begin(), _visible_messages.end());
 		_visible_messages.clear();

@@ -11,19 +11,20 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
-// Standard:
-#include <cstddef>
+// Local:
+#include "histogram_stats_widget.h"
+
+// Xefis:
+#include <xefis/config/all.h>
+#include <xefis/support/ui/paint_helper.h>
 
 // Qt:
 #include <QLabel>
 #include <QWidget>
 #include <QGridLayout>
 
-// Xefis:
-#include <xefis/config/all.h>
-
-// Local:
-#include "histogram_stats_widget.h"
+// Standard:
+#include <cstddef>
 
 
 namespace xf {
@@ -47,8 +48,10 @@ HistogramStatsWidget::HistogramStatsWidget (QWidget* parent):
 	_stddev_value = new QLabel (this);
 	_critical_value = new QLabel (this);
 
+	auto const ph = PaintHelper (*this, palette(), font());
+
 	auto* layout = new QGridLayout (this);
-	layout->setHorizontalSpacing (em_pixels (1.0f));
+	layout->setHorizontalSpacing (ph.em_pixels (1.0f));
 
 	layout->addWidget (num_samples_label, 0, 0);
 	layout->addWidget (_num_samples_value, 0, 1);

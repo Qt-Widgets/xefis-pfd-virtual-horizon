@@ -11,34 +11,34 @@
  * Visit http://www.gnu.org/licenses/gpl-3.0.html for more information on licensing.
  */
 
-// Standard:
-#include <cstddef>
+// Local:
+#include "afcs_roll_autotrim.h"
 
 // Xefis:
 #include <xefis/config/all.h>
 
-// Local:
-#include "afcs_roll_autotrim.h"
+// Standard:
+#include <cstddef>
 
 
-AFCS_RollAutotrim::AFCS_RollAutotrim (std::unique_ptr<AFCS_RollAutotrim_IO> module_io, std::string_view const& instance):
-	Module (std::move (module_io), instance)
+AFCS_RollAutotrim::AFCS_RollAutotrim (std::string_view const& instance):
+	AFCS_RollAutotrim_IO (instance)
 { }
 
 
 void
 AFCS_RollAutotrim::process (xf::Cycle const&)
 {
-	if (io.measured_ias && io.measured_engine_torque)
+	if (_io.measured_ias && _io.measured_engine_torque)
 	{
 		// TODO Do this correctly, now it's just too simple.
-		auto ias_part = *io.ias_coefficient / io.measured_ias->in<si::MeterPerSecond>();
-		auto torque_part = *io.engine_torque_coefficient * io.measured_engine_torque->in<si::NewtonMeter>();
+		auto ias_part = *_io.ias_coefficient / _io.measured_ias->in<si::MeterPerSecond>();
+		auto torque_part = *_io.engine_torque_coefficient * _io.measured_engine_torque->in<si::NewtonMeter>();
 		si::Angle correction = 1_deg * (ias_part + torque_part);
 
-		io.ailerons_correction = *io.total_coefficient * correction;
+		_io.ailerons_correction = *_io.total_coefficient * correction;
 	}
 	else
-		io.ailerons_correction = xf::nil;
+		_io.ailerons_correction = xf::nil;
 }
 
